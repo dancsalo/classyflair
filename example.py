@@ -1,6 +1,8 @@
 import argparse
 import os
 
+from flair.visual.training_curves import Plotter
+
 import models
 from classyflair import create_trainer, get_train_path, load_corpus, save_corpus, create_corpus
 
@@ -78,6 +80,8 @@ def main():
                       anneal_factor=0.5,
                       patience=5,
                       max_epochs=args['e'])
+        plotter = Plotter()
+        plotter.plot_training_curves(os.path.join(train_path, 'loss.tsv'))
 
 
 if __name__ == '__main__':
