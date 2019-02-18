@@ -46,6 +46,7 @@ def parse(load_file_dir):
 
 
 def tokenizer(text: str):
+    """Custom Tokenizer the uses spacy"""
     return [{'text': token.text, 'idx': token.idx} for token in nlp(text)]
 
 
