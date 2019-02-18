@@ -2,9 +2,12 @@ import argparse
 import os
 
 from flair.visual.training_curves import Plotter
+import spacy
 
 import models
 from classyflair import create_trainer, get_train_path, load_corpus, save_corpus, create_corpus
+
+nlp = spacy.load('en_core_web_sm')
 
 
 def _process_line(_line):
@@ -42,6 +45,10 @@ def parse(load_file_dir):
     ]
 
 
+def tokenizer(text: str):
+    return [{'text': token.text, 'idx': token.idx} for token in nlp(text)]
+
+
 def main():
     # Parse Args
     parser = argparse.ArgumentParser()
@@ -62,7 +69,7 @@ def main():
     # Preprocess or Train
     if args['m'] == 'preprocess':
         dataset = parse(args['l'])
-        corpus = create_corpus(dataset)
+        corpus = create_corpus(dataset, tokenizer=tokenizer)
         if args['d']:
             save_corpus(corpus, args['d'])
     elif args['m'] == 'train':
@@ -79,7 +86,8 @@ def main():
                       mini_batch_size=32,
                       anneal_factor=0.5,
                       patience=5,
-                      max_epochs=args['e'])
+                      max_epochs=args['e'],
+                      weight_decay=0.0001)
         plotter = Plotter()
         plotter.plot_training_curves(os.path.join(train_path, 'loss.tsv'))
 

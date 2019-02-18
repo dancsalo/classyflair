@@ -2,19 +2,23 @@ import os
 import pickle
 import random
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Callable
 
-from flair.data import Sentence, TaggedCorpus
+from flair.data import TaggedCorpus
+from tqdm import tqdm
+
+from classyflair.classes import ClassySentence
 
 
-def _convert_to_sentences(parsed_dataset: List[Dict]) -> List[Sentence]:
+def _convert_to_sentences(parsed_dataset: List[Dict],
+                          tokenizer: Callable[[str], List[Dict]]) -> List[ClassySentence]:
     """
     Takes a list of dict with keys 'labels' and 'text'
     and returns a list of Sentences
     """
     return [
-        Sentence(text=datapoint['text'], labels=datapoint['labels'])
-        for datapoint in parsed_dataset
+        ClassySentence(tokens=tokenizer(datapoint['text']), labels=datapoint['labels'])
+        for datapoint in tqdm(parsed_dataset)
     ]
 
 
@@ -53,6 +57,7 @@ def load_corpus(dataset_dir: Union[str, Path]):
 
 def create_corpus(
         dataset: List[Dict],
+        tokenizer: Callable[[str], List[Dict]],
         train_percent: float = 0.7,
         dev_percent: float = 0.1,
         seed: int = 1234) -> TaggedCorpus:
@@ -61,7 +66,7 @@ def create_corpus(
     https://github.com/zalandoresearch/custom-flair-classifier/blob/
     4b3562eed534e4e305a36d2f22d12961bc6c25d5/custom-flair-classifier/data_fetcher.py#L328
     """
-    sentences = _convert_to_sentences(dataset)
+    sentences = _convert_to_sentences(dataset, tokenizer)
 
     random.seed(seed)
     random.shuffle(sentences)

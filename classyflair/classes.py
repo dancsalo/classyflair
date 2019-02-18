@@ -1,9 +1,9 @@
 import logging
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Dict
 
 import torch
-from flair.data import Sentence, Dictionary
+from flair.data import Sentence, Dictionary, Label, Token
 from flair.embeddings import Embeddings, DocumentLSTMEmbeddings, CharacterEmbeddings
 from flair.models import TextClassifier
 from flair.trainers import ModelTrainer
@@ -158,3 +158,23 @@ class ClassyTrainer(ModelTrainer):
             final_score = test_metric.micro_avg_f_score()
 
         return final_score
+
+
+class ClassySentence(Sentence):
+    """
+    A Sentence is a list of Tokens and is used to represent a sentence or text fragment.
+    """
+
+    def __init__(self, tokens: List[Dict],
+                 labels: Union[List[Label], List[str]] = None):
+
+        self.tokens: List[Token] = [
+            Token(token['text'], start_position=token['idx'])
+            for token in tokens
+        ]
+
+        self.labels: List[Label] = []
+        if labels is not None:
+            self.add_labels(labels)
+
+        self._embeddings: Dict = {}
