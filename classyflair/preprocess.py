@@ -17,7 +17,7 @@ def _convert_to_sentences(parsed_dataset: List[Dict],
     and returns a list of Sentences
     """
     return [
-        ClassySentence(tokens=tokenizer(datapoint['text']), labels=datapoint['labels'])
+        ClassySentence(text=datapoint['text'], tokenizer=tokenizer, labels=datapoint['labels'])
         for datapoint in tqdm(parsed_dataset)
     ]
 

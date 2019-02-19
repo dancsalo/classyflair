@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Callable
 
 import torch
 from flair.data import Sentence, Dictionary, Label, Token
 from flair.embeddings import Embeddings, DocumentLSTMEmbeddings, CharacterEmbeddings
 from flair.models import TextClassifier
 from flair.trainers import ModelTrainer
-from flair.training_utils import EvaluationMetric, log_line
+from flair.training_utils import EvaluationMetric, log_line, clear_embeddings
 
 LOG = logging.getLogger('flair')
 
@@ -165,16 +165,38 @@ class ClassySentence(Sentence):
     A Sentence is a list of Tokens and is used to represent a sentence or text fragment.
     """
 
-    def __init__(self, tokens: List[Dict],
+    def __init__(self, text: str,
+                 tokenizer: Callable,
                  labels: Union[List[Label], List[str]] = None):
-
-        self.tokens: List[Token] = [
-            Token(token['text'], start_position=token['idx'])
-            for token in tokens
-        ]
 
         self.labels: List[Label] = []
         if labels is not None:
             self.add_labels(labels)
 
         self._embeddings: Dict = {}
+
+        self.tokens: List[Token] = []
+
+        # determine offsets for whitespace_after field
+        index = text.index
+        running_offset = 0
+        last_word_offset = -1
+        last_token = None
+        for word in [token for token in tokenizer(text)]:
+            try:
+                word_offset = index(word['text'], running_offset)
+                start_position = word_offset
+            except:
+                word_offset = last_word_offset + 1
+                start_position = running_offset + 1 if running_offset > 0 else running_offset
+
+            token = Token(word['text'], start_position=start_position)
+            self.add_token(token)
+
+            if word_offset - 1 == last_word_offset and last_token is not None:
+                last_token.whitespace_after = False
+
+            word_len = len(word['text'])
+            running_offset = word_offset + word_len
+            last_word_offset = running_offset - 1
+            last_token = token
