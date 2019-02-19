@@ -39,6 +39,19 @@ class ClassyClassifier(TextClassifier):
         self.embedding_length = self.embedder.embedding_length
         self.init_layers()
 
+    def get_scores(self, sentence):
+        """
+        Predicts the class labels for the given sentences. The labels are directly added to the sentences.
+        :param sentences: list of sentences
+        :param mini_batch_size: mini batch size to use
+        :return: the list of sentences containing the labels
+        """
+        with torch.no_grad():
+            batch = [sentence]
+            scores = self.forward(batch)
+            clear_embeddings(batch)
+            return scores
+
     def save(self, model_file: Union[str, Path]):
         """
         Saves the current model to the provided file.
