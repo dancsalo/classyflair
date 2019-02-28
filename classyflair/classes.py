@@ -12,6 +12,23 @@ from flair.training_utils import EvaluationMetric, log_line, clear_embeddings
 LOG = logging.getLogger('flair')
 
 
+class ClassyParser:
+
+    def __init__(self, load_file_dir):
+        self.load_file_dir = load_file_dir
+
+    @classmethod
+    def __str__(cls):
+        return cls.__name__
+
+    def parse(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def tokenizer(text: str):
+        raise NotImplementedError
+
+
 class ClassyClassifier(TextClassifier):
     """
     Adapted from:
