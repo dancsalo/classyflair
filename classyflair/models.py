@@ -94,6 +94,40 @@ class TwoLayerMLP(ClassyClassifier):
         return label_scores
 
 
+class ThreeLayerMLPdp(ClassyClassifier):
+
+    def __init__(self, *args, **kwargs):
+        super(ThreeLayerMLPdp, self).__init__(*args, **kwargs)
+
+    def init_embedder(self) -> Embeddings:
+        """Initializes the sentence embedding object"""
+        return StackedEmbeddings(self.embeddings)
+
+    def init_layers(self):
+        """Initializes the layers to be used in forward()"""
+        self.decoder = torch.nn.Sequential(
+                torch.nn.Linear(self.embedding_length, 4000),
+                torch.nn.ReLU(),
+                torch.nn.Dropout(0.5),
+                torch.nn.Linear(4000, 1000),
+                torch.nn.ReLU(),
+                torch.nn.Dropout(0.5),
+                torch.nn.Linear(1000, len(self.label_dictionary))
+            )
+
+    def forward(self, sentences: Union[List[Sentence], Sentence]) -> torch.Tensor:
+        """Defines one forward pass of the neural net"""
+        self.embedder.embed(sentences)
+
+        # Average
+        text_embedding_tensors = torch.stack(
+            [torch.stack([word.embedding for word in sentence]).mean(dim=0)
+             for sentence in sentences])
+
+        label_scores = self.decoder(text_embedding_tensors).squeeze()
+        return label_scores
+
+
 class TwoLayerMLPdp(ClassyClassifier):
 
     def __init__(self, *args, **kwargs):
