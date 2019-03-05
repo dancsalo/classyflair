@@ -2,13 +2,15 @@ import logging
 from pathlib import Path
 from typing import Union, List, Dict, Callable
 
+import spacy
 import torch
-from flair.data import Sentence, Dictionary, Label, Token
+from flair.data import Sentence, Dictionary, Label, Token, TaggedCorpus
 from flair.embeddings import Embeddings, DocumentLSTMEmbeddings, CharacterEmbeddings
 from flair.models import TextClassifier
 from flair.trainers import ModelTrainer
 from flair.training_utils import EvaluationMetric, log_line, clear_embeddings
 
+nlp = spacy.load('en_core_web_sm')
 LOG = logging.getLogger('flair')
 
 
@@ -26,7 +28,18 @@ class ClassyParser:
 
     @staticmethod
     def tokenizer(text: str):
-        raise NotImplementedError
+        """Custom Tokenizer the uses spacy"""
+        return [{'text': token.text} for token in nlp(text)]
+
+
+class ClassyCorpus(TaggedCorpus):
+
+    def __init__(self, sentences_train: List[Sentence],
+                 sentences_dev: List[Sentence],
+                 sentences_test: List[Sentence],
+                 multi_label: bool):
+        self.multi_label = multi_label
+        super(ClassyCorpus, self).__init__(sentences_train, sentences_dev, sentences_test)
 
 
 class ClassyClassifier(TextClassifier):

@@ -31,14 +31,16 @@ def main():
         corpus = create_corpus(dataset, tokenizer=parser.tokenizer)
         save_corpus(corpus, dataset_dir=str(_parser))
     elif args['m'] == 'train':
-        corpus = load_corpus(args['d'])
+        save_dir = str(getattr(parsers, args['p'])(''))
+        corpus = load_corpus(save_dir)
         model = getattr(models, args['a'])
         trainer = create_trainer(corpus,
                                  model,
                                  bert_embeddings=args['b'],
                                  flair_embeddings=args['f'],
-                                 word_embeddings=args['w'])
-        train_path = get_train_path(args['a'], args['d'])
+                                 word_embeddings=args['w'],
+                                 multi_label=corpus.multi_label)
+        train_path = get_train_path(args['a'], save_dir)
         trainer.train(train_path,
                       learning_rate=args['r'],
                       mini_batch_size=32,
