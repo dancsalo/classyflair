@@ -1,10 +1,6 @@
 import os
 
-import spacy
-
 from classyflair.classes import ClassyParser
-
-nlp = spacy.load('en_core_web_sm')
 
 
 class SciArticles(ClassyParser):
@@ -32,7 +28,7 @@ class SciArticles(ClassyParser):
 
     def parse(self):
         """
-        Generators a dict with keys 'labels' and 'text'
+        Outputs a list of dict with keys 'labels' and 'text'
         """
         article_file_paths = [
             article.path
@@ -45,7 +41,26 @@ class SciArticles(ClassyParser):
             for datapoint in self._parse_file(file_path)
         ]
 
-    @staticmethod
-    def tokenizer(text: str):
-        """Custom Tokenizer the uses spacy"""
-        return [{'text': token.text} for token in nlp(text)]
+
+class Sst1(ClassyParser):
+
+    def __init__(self, *args, **kwargs):
+        super(Sst1, self).__init__(*args, **kwargs)
+
+    def load_file(self, split: str):
+        data = []
+        path = os.path.join(self.load_file_dir, f'stsa.binary.{split}')
+        with open(path) as f:
+            for row in f.readlines():
+                label, sentence = row.split(' ', 1)
+                data.append({'labels': [label], 'text': sentence.strip()})
+        return data
+
+    def parse(self):
+        """
+        Outputs a list of dict with keys 'labels' and 'text'
+        """
+        train = self.load_file('train')
+        dev = self.load_file('dev')
+        test = self.load_file('test')
+        return {'train': train, 'dev': dev, 'test': test}
