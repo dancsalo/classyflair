@@ -33,7 +33,7 @@ class SciArticles(ClassyParser):
         article_file_paths = [
             article.path
             for article in os.scandir(self.load_file_dir)
-            if article.path[-4:] == '.txt'
+            if article.path[-6:] == '_1.txt'
         ]
         return [
             datapoint
