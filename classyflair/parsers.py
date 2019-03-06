@@ -42,10 +42,10 @@ class SciArticles(ClassyParser):
         ]
 
 
-class Sst1(ClassyParser):
+class Sst2(ClassyParser):
 
     def __init__(self, *args, **kwargs):
-        super(Sst1, self).__init__(*args, **kwargs)
+        super(Sst2, self).__init__(*args, **kwargs)
 
     def load_file(self, split: str):
         data = []
